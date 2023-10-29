@@ -13,7 +13,7 @@ class ProductController extends Controller
         return $productos;
     }
     public function store(Request $request){
-        $productos = Products::create([
+         Products::create([
             "nombre"=>$request->nombre,
             "descripcion"=>$request->descripcion,
             "precio"=>$request->precio,
@@ -21,5 +21,32 @@ class ProductController extends Controller
         ]);
 
         return "Producto creado";
+    }
+    public function update(Request $request){
+        $id = $request->id;
+        $descripcion = $request->descripcion;
+        $producto = Products::where('id',$id)->first();
+        if(!$producto){
+            return 'No existe producto';
+        }
+        $producto->descripcion = $descripcion;
+        $producto->save();
+        $producto = Products::where('id',$id)->first();
+
+        return $producto;
+
+
+    }
+    public function search(Request $request){
+        $param = $request->parametro;
+        
+        $palabras = explode(' ', $param);
+        $terminoBusquedaFormateado = implode(' +', $palabras);
+  
+        $productos = Products::select('*')
+        ->whereRaw("MATCH(nombre, descripcion) AGAINST(? IN BOOLEAN MODE)", [$terminoBusquedaFormateado])
+        ->get();
+
+        return $productos;
     }
 }
